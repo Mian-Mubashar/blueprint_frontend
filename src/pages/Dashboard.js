@@ -51,27 +51,27 @@ const Dashboard = () => {
   const recentPayments = dashboardData?.recentPayments || [];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 pt-20 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8" data-aos="fade-up">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                 Welcome back, {user?.first_name}!
               </h1>
-              <p className="text-gray-600 mt-2">
+              <p className="text-gray-600 mt-2 text-sm sm:text-base">
                 Manage your loans and track your financial journey
               </p>
             </div>
-            <div className="flex space-x-4">
-              <Link to="/apply-loan" className="btn-primary flex items-center">
-                <Plus className="w-5 h-5 mr-2" />
-                Apply for Loan
+            <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4">
+              <Link to="/apply-loan" className="btn-primary flex items-center justify-center text-sm sm:text-base px-4 py-2 sm:px-6 sm:py-2.5">
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                <span className="whitespace-nowrap">Apply for Loan</span>
               </Link>
-              <button className="btn-outline flex items-center">
-                <Settings className="w-5 h-5 mr-2" />
-                Settings
+              <button className="btn-outline flex items-center justify-center text-sm sm:text-base px-4 py-2 sm:px-6 sm:py-2.5">
+                <Settings className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                <span className="whitespace-nowrap">Settings</span>
               </button>
             </div>
           </div>

@@ -8,8 +8,6 @@ import {
   CheckCircle,
   ArrowRight,
   Building,
-  Car,
-  Briefcase,
   TrendingUp,
   Users,
   Award
@@ -178,7 +176,7 @@ const Services = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="hero-gradient py-20">
+      <section className="hero-gradient pt-24 pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div data-aos="fade-up">
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">

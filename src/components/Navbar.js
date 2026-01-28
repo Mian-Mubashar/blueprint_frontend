@@ -40,27 +40,31 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            {/* <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">BF</span>
-            </div> */}
+          <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
             <img
               src={logo}
               alt="Logo"
-              style={{ width: "75px", height: "auto" }}
+              className="w-12 h-auto sm:w-16 md:w-20"
             />
-            <span className="text-xl font-bold text-gray-900">
-            Blue Print Microfinance
+            <span className={`text-base sm:text-lg md:text-xl font-bold ${
+              isScrolled ? "text-gray-900" : "text-white"
+            } hidden sm:block`}>
+              Blue Print Microfinance
+            </span>
+            <span className={`text-base font-bold ${
+              isScrolled ? "text-gray-900" : "text-white"
+            } sm:hidden`}>
+              BPM
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden lg:flex items-center space-x-4 xl:space-x-8">
             {navItems.map((item) => (
               <Link
                 key={item.name}
                 to={item.path}
-                className={`font-medium transition-colors duration-200 hover:text-primary-600 ${
+                className={`text-sm xl:text-base font-medium transition-colors duration-200 hover:text-primary-600 whitespace-nowrap ${
                   isScrolled ? "text-gray-900" : "text-white"
                 }`}
               >
@@ -70,48 +74,53 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden lg:flex items-center space-x-3 xl:space-x-4">
             {user ? (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 xl:space-x-4">
                 <Link
                   to="/dashboard"
-                  className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors"
+                  className={`flex items-center space-x-1 xl:space-x-2 transition-colors text-sm xl:text-base ${
+                    isScrolled ? "text-gray-700 hover:text-primary-600" : "text-white hover:text-primary-400"
+                  }`}
                 >
-                  <User className="w-5 h-5" />
-                  <span>Dashboard</span>
+                  <User className="w-4 h-4 xl:w-5 xl:h-5" />
+                  <span className="hidden xl:inline">Dashboard</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors"
+                  className={`flex items-center space-x-1 xl:space-x-2 transition-colors text-sm xl:text-base ${
+                    isScrolled ? "text-gray-700 hover:text-primary-600" : "text-white hover:text-primary-400"
+                  }`}
                 >
-                  <LogOut className="w-5 h-5" />
-                  <span>Logout</span>
+                  <LogOut className="w-4 h-4 xl:w-5 xl:h-5" />
+                  <span className="hidden xl:inline">Logout</span>
                 </button>
               </div>
             ) : (
               <>
                 <Link
                   to="/login"
-                  className={`font-medium transition-colors duration-200 hover:text-primary-600 ${
+                  className={`text-sm xl:text-base font-medium transition-colors duration-200 hover:text-primary-600 whitespace-nowrap ${
                     isScrolled ? "text-gray-900" : "text-white"
                   }`}
                 >
                   Login
                 </Link>
-                <Link to="/register" className="btn-primary">
+                <Link to="/register" className="btn-primary text-sm xl:text-base px-3 xl:px-4 py-1.5 xl:py-2">
                   Get Started
                 </Link>
               </>
             )}
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
+          {/* Mobile/Tablet menu button */}
+          <div className="lg:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className={`p-2 rounded-md transition-colors ${
+              className={`p-2 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                 isScrolled ? "text-gray-900" : "text-white"
               }`}
+              aria-label="Toggle menu"
             >
               {isOpen ? (
                 <X className="w-6 h-6" />
@@ -123,57 +132,61 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* Mobile/Tablet Navigation */}
       {isOpen && (
-        <div className="md:hidden bg-white shadow-lg">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+        <div className="lg:hidden bg-white shadow-lg border-t border-gray-200">
+          <div className="px-4 pt-2 pb-4 space-y-1 max-w-7xl mx-auto">
             {navItems.map((item) => (
               <Link
                 key={item.name}
                 to={item.path}
-                className="block px-3 py-2 text-gray-900 font-medium hover:text-primary-600 transition-colors"
+                className="block px-3 py-2.5 text-gray-900 font-medium hover:bg-gray-50 hover:text-primary-600 transition-colors rounded-md"
                 onClick={() => setIsOpen(false)}
               >
                 {item.name}
               </Link>
             ))}
-            {user ? (
-              <>
-                <Link
-                  to="/dashboard"
-                  className="block px-3 py-2 text-gray-900 font-medium hover:text-primary-600 transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Dashboard
-                </Link>
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    setIsOpen(false);
-                  }}
-                  className="block w-full text-left px-3 py-2 text-gray-900 font-medium hover:text-primary-600 transition-colors"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="block px-3 py-2 text-gray-900 font-medium hover:text-primary-600 transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="block px-3 py-2 text-primary-600 font-medium hover:text-primary-700 transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Get Started
-                </Link>
-              </>
-            )}
+            <div className="border-t border-gray-200 pt-2 mt-2">
+              {user ? (
+                <>
+                  <Link
+                    to="/dashboard"
+                    className="flex items-center space-x-2 px-3 py-2.5 text-gray-900 font-medium hover:bg-gray-50 hover:text-primary-600 transition-colors rounded-md"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <User className="w-5 h-5" />
+                    <span>Dashboard</span>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsOpen(false);
+                    }}
+                    className="flex items-center space-x-2 w-full text-left px-3 py-2.5 text-gray-900 font-medium hover:bg-gray-50 hover:text-primary-600 transition-colors rounded-md"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span>Logout</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="block px-3 py-2.5 text-gray-900 font-medium hover:bg-gray-50 hover:text-primary-600 transition-colors rounded-md"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="block px-3 py-2.5 bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors rounded-md text-center"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

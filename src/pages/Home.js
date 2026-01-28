@@ -110,7 +110,7 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="hero-gradient min-h-screen flex items-center relative overflow-hidden">
+      <section className="hero-gradient min-h-screen flex items-center relative overflow-hidden pt-16">
         <div className="absolute inset-0 bg-black opacity-20"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -124,10 +124,7 @@ const Home = () => {
                 From small business funding to emergency payday loans, we're your trusted financial partner.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/register" className="btn-primary text-center">
-                  Apply Now
-                  <ArrowRight className="w-5 h-5 ml-2 inline" />
-                </Link>
+                c
                 <Link to="/services" className="btn-outline border-white text-white hover:bg-white hover:text-gray-900 text-center">
                   Our Services
                 </Link>
@@ -319,12 +316,12 @@ const Home = () => {
             <div data-aos="fade-up">
               <Phone className="w-8 h-8 text-primary-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Call Us</h3>
-              <p className="text-gray-300">+1 (703) 623-8800 </p>
+              <p className="text-gray-300">+1 (555) 123-4567</p>
             </div>
             <div data-aos="fade-up" data-aos-delay="100">
               <Mail className="w-8 h-8 text-primary-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Email Us</h3>
-              <p className="text-gray-300"> info@ blueprintmicrofinance.com</p>
+              <p className="text-gray-300">contact@example.com</p>
             </div>
             <div data-aos="fade-up" data-aos-delay="200">
               <MapPin className="w-8 h-8 text-primary-400 mx-auto mb-4" />

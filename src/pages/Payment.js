@@ -6,7 +6,6 @@ import {
   CreditCard, 
   DollarSign, 
   CheckCircle, 
-  AlertCircle,
   ArrowLeft,
   Calculator,
   Info
@@ -22,7 +21,7 @@ const PaymentForm = () => {
   const stripe = useStripe();
   const elements = useElements();
 
-  const { loanId, amount, loanType, loanAmount } = location.state || {};
+  const { loanId, amount } = location.state || {};
   
   const [paymentData, setPaymentData] = useState({
     paymentType: 'loan_repayment',
@@ -47,7 +46,7 @@ const PaymentForm = () => {
       return;
     }
     calculateProcessingFee(paymentData.selectedAmount);
-  }, [paymentData.selectedAmount]);
+  }, [paymentData.selectedAmount, location.state, navigate]);
 
   const calculateProcessingFee = (amount) => {
     // 2.5% processing fee
@@ -135,7 +134,7 @@ const PaymentForm = () => {
   const totalAmount = paymentData.selectedAmount + processingFee;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 pt-20 pb-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8" data-aos="fade-up">

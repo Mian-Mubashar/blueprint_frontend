@@ -46,7 +46,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center pt-20 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8" data-aos="fade-up">
         <div className="text-center">
           <Link to="/" className="flex items-center justify-center space-x-2 mb-6">
@@ -133,9 +133,13 @@ const Login = () => {
                 </label>
               </div>
               <div className="text-sm">
-                <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
+                <button 
+                  type="button"
+                  onClick={() => toast.info('Password reset feature coming soon')}
+                  className="font-medium text-primary-600 hover:text-primary-500"
+                >
                   Forgot your password?
-                </a>
+                </button>
               </div>
             </div>
 
@@ -194,13 +198,21 @@ const Login = () => {
         <div className="text-center">
           <p className="text-sm text-gray-600">
             By signing in, you agree to our{' '}
-            <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
+            <button 
+              type="button"
+              onClick={() => toast.info('Terms of Service page coming soon')}
+              className="font-medium text-primary-600 hover:text-primary-500"
+            >
               Terms of Service
-            </a>{' '}
+            </button>{' '}
             and{' '}
-            <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
+            <button 
+              type="button"
+              onClick={() => toast.info('Privacy Policy page coming soon')}
+              className="font-medium text-primary-600 hover:text-primary-500"
+            >
               Privacy Policy
-            </a>
+            </button>
           </p>
         </div>
       </div>
