@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -6,6 +6,17 @@ import toast from 'react-hot-toast';
 const GoogleAuth = ({ buttonText = "Continue with Google", className = "btn-outline" }) => {
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const handleGoogleResponse = useCallback(async (response) => {
+    try {
+      const result = await login(null, null, response.credential);
+      if (result.success) {
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      toast.error('Google login failed. Please try again.');
+    }
+  }, [login, navigate]);
 
   useEffect(() => {
     // Load Google Identity Services
@@ -29,18 +40,7 @@ const GoogleAuth = ({ buttonText = "Continue with Google", className = "btn-outl
     return () => {
       document.body.removeChild(script);
     };
-  }, []);
-
-  const handleGoogleResponse = async (response) => {
-    try {
-      const result = await login(null, null, response.credential);
-      if (result.success) {
-        navigate('/dashboard');
-      }
-    } catch (error) {
-      toast.error('Google login failed. Please try again.');
-    }
-  };
+  }, [handleGoogleResponse]);
 
   const handleGoogleLogin = () => {
     if (window.google) {

@@ -5,14 +5,10 @@ import {
   DollarSign, 
   FileText, 
   CreditCard, 
-  TrendingUp, 
-  Clock, 
   CheckCircle,
-  AlertCircle,
   User,
   Settings,
-  Plus,
-  Eye
+  Plus
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';

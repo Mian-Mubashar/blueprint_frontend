@@ -1,8 +1,7 @@
 import React from 'react';
 import { 
   Shield, 
-  Target, 
-  Users, 
+  Target,  
   Award, 
   TrendingUp, 
   Globe,

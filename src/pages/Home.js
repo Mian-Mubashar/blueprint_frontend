@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  ArrowRight, 
   Shield, 
   Clock, 
   DollarSign, 
@@ -124,7 +123,6 @@ const Home = () => {
                 From small business funding to emergency payday loans, we're your trusted financial partner.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                c
                 <Link to="/services" className="btn-outline border-white text-white hover:bg-white hover:text-gray-900 text-center">
                   Our Services
                 </Link>

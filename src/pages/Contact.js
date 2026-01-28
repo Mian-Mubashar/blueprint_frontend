@@ -394,15 +394,27 @@ const Contact = () => {
             </p>
             
             <div className="flex justify-center space-x-6 mb-8">
-              <a href="#" className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center text-white hover:bg-primary-700 transition-colors">
+              <button
+                type="button"
+                onClick={() => toast.info('Website coming soon')}
+                className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center text-white hover:bg-primary-700 transition-colors"
+              >
                 <Globe className="w-6 h-6" />
-              </a>
-              <a href="#" className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors">
+              </button>
+              <button
+                type="button"
+                onClick={() => toast.info('Social channel coming soon')}
+                className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors"
+              >
                 <MessageCircle className="w-6 h-6" />
-              </a>
-              <a href="#" className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white hover:bg-green-700 transition-colors">
+              </button>
+              <button
+                type="button"
+                onClick={() => toast.info('Community channel coming soon')}
+                className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white hover:bg-green-700 transition-colors"
+              >
                 <Users className="w-6 h-6" />
-              </a>
+              </button>
             </div>
 
             <div className="max-w-md mx-auto">
