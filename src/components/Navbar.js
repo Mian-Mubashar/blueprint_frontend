@@ -46,15 +46,12 @@ const Navbar = () => {
               alt="Logo"
               className="w-12 h-auto sm:w-16 md:w-20"
             />
-            <span className={`text-base sm:text-lg md:text-xl font-bold ${
-              isScrolled ? "text-gray-900" : "text-white"
-            } hidden sm:block`}>
+            <span
+              className={`block text-sm sm:text-lg md:text-xl font-bold leading-tight ${
+                isScrolled ? "text-gray-900" : "text-white"
+              }`}
+            >
               Blue Print Microfinance
-            </span>
-            <span className={`text-base font-bold ${
-              isScrolled ? "text-gray-900" : "text-white"
-            } sm:hidden`}>
-              BPM
             </span>
           </Link>
 

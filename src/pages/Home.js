@@ -109,7 +109,7 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="hero-gradient min-h-screen flex items-center relative overflow-hidden pt-16">
+      <section className="hero-gradient min-h-screen flex items-start lg:items-center relative overflow-hidden pt-24 pb-24 sm:pt-24 sm:pb-28">
         <div className="absolute inset-0 bg-black opacity-20"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">

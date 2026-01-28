@@ -52,7 +52,7 @@ const About = () => {
     {
       name: "Fatima Ibrahim",
       position: "Chief Operating Officer",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face",
+      image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop&crop=face",
       description: "Expert in digital transformation and customer experience."
     },
     {
