@@ -1,20 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
 import { 
   DollarSign, 
   Calendar, 
-  FileText, 
   Shield, 
   Calculator,
   CheckCircle,
   AlertCircle,
-  CreditCard,
-  Building,
-  Car,
-  Briefcase
+  Building
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -22,9 +17,6 @@ import toast from 'react-hot-toast';
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || 'pk_test_your_stripe_key');
 
 const LoanApplicationForm = () => {
-  const { user } = useAuth();
-  const stripe = useStripe();
-  const elements = useElements();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -504,9 +496,29 @@ const LoanApplicationForm = () => {
         />
         <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
           I agree to the{' '}
-          <a href="#" className="text-primary-600 hover:text-primary-500">Terms and Conditions</a>
+          <button
+            type="button"
+            className="text-primary-600 hover:text-primary-500"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toast.info('Terms and Conditions page coming soon');
+            }}
+          >
+            Terms and Conditions
+          </button>
           {' '}and{' '}
-          <a href="#" className="text-primary-600 hover:text-primary-500">Privacy Policy</a>
+          <button
+            type="button"
+            className="text-primary-600 hover:text-primary-500"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toast.info('Privacy Policy page coming soon');
+            }}
+          >
+            Privacy Policy
+          </button>
         </label>
       </div>
     </div>
