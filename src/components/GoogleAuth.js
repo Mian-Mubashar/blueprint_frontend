@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-const GoogleAuth = ({ buttonText = "Continue with Google", className = "btn-outline" }) => {
+const GoogleAuth = ({ buttonText = "Continue with Google", className = "btn-outline", onSuccess }) => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -11,12 +11,22 @@ const GoogleAuth = ({ buttonText = "Continue with Google", className = "btn-outl
     try {
       const result = await login(null, null, response.credential);
       if (result.success) {
-        navigate('/dashboard');
+        // Role-based redirect
+        const userRole = result.user?.role || 'user';
+        if (onSuccess) {
+          onSuccess(result.user);
+        } else {
+          if (userRole === 'admin') {
+            navigate('/admin');
+          } else {
+            navigate('/dashboard');
+          }
+        }
       }
     } catch (error) {
       toast.error('Google login failed. Please try again.');
     }
-  }, [login, navigate]);
+  }, [login, navigate, onSuccess]);
 
   useEffect(() => {
     // Load Google Identity Services

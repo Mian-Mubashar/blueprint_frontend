@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  DollarSign, 
-  FileText, 
-  CreditCard, 
+import {
+  DollarSign,
+  FileText,
+  CreditCard,
   CheckCircle,
-  User,
-  Settings,
-  Plus
+  Plus,
+  HelpCircle,
+  User
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import UserLayout from '../components/UserLayout';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -47,8 +48,8 @@ const Dashboard = () => {
   const recentPayments = dashboardData?.recentPayments || [];
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20 pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <UserLayout>
+      <div className="w-full">
         {/* Header */}
         <div className="mb-8" data-aos="fade-up">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -65,10 +66,6 @@ const Dashboard = () => {
                 <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                 <span className="whitespace-nowrap">Apply for Loan</span>
               </Link>
-              <button className="btn-outline flex items-center justify-center text-sm sm:text-base px-4 py-2 sm:px-6 sm:py-2.5">
-                <Settings className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                <span className="whitespace-nowrap">Settings</span>
-              </button>
             </div>
           </div>
         </div>
@@ -135,7 +132,7 @@ const Dashboard = () => {
                 View all
               </Link>
             </div>
-            
+
             {recentApplications.length > 0 ? (
               <div className="space-y-4">
                 {recentApplications.map((application) => (
@@ -153,18 +150,37 @@ const Dashboard = () => {
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        application.status === 'approved' ? 'bg-green-100 text-green-800' :
-                        application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        application.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
+                    <div className="flex flex-col items-end gap-2">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${application.status === 'disbursed' ? 'bg-green-100 text-green-800' :
+                          application.status === 'approved' ? 'bg-green-100 text-green-800' :
+                            application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              application.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                'bg-blue-100 text-blue-800'
+                        }`}>
                         {application.status}
                       </span>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500">
                         {new Date(application.created_at).toLocaleDateString()}
                       </p>
+                      {(application.status === 'disbursed' || application.status === 'approved') && (
+                        <div className="flex flex-col gap-2">
+                          <Link
+                            to={`/repayment-schedule/${application.id}`}
+                            className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 transition text-center"
+                          >
+                            View Schedule
+                          </Link>
+                          {application.status === 'disbursed' && (
+                            <Link
+                              to="/payment"
+                              state={{ loanId: application.id, amount: application.monthly_repayment || application.amount_requested, loanType: application.loan_type }}
+                              className="text-xs bg-primary-600 text-white px-3 py-1.5 rounded hover:bg-primary-700 transition text-center"
+                            >
+                              Pay Now
+                            </Link>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -188,7 +204,7 @@ const Dashboard = () => {
                 View all
               </Link>
             </div>
-            
+
             {recentPayments.length > 0 ? (
               <div className="space-y-4">
                 {recentPayments.map((payment) => (
@@ -210,11 +226,10 @@ const Dashboard = () => {
                       <p className="font-semibold text-gray-900">
                         ₦{payment.amount.toLocaleString()}
                       </p>
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        payment.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${payment.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                        }`}>
                         {payment.status}
                       </span>
                     </div>
@@ -253,7 +268,7 @@ const Dashboard = () => {
 
               <Link to="/contact" className="p-6 bg-accent-50 rounded-lg hover:bg-accent-100 transition-colors">
                 <div className="flex items-center mb-3">
-                  <Settings className="w-6 h-6 text-accent-600 mr-3" />
+                  <HelpCircle className="w-6 h-6 text-accent-600 mr-3" />
                   <h3 className="font-semibold text-gray-900">Get Support</h3>
                 </div>
                 <p className="text-sm text-gray-600">Contact our support team</p>
@@ -262,7 +277,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-    </div>
+    </UserLayout>
   );
 };
 

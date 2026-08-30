@@ -34,9 +34,9 @@ const Footer = () => {
   const support = [
     { name: "Help Center", path: "/contact" },
     { name: "FAQ", path: "/contact" },
-    { name: "Terms of Service", path: "#" },
-    { name: "Privacy Policy", path: "#" },
-    { name: "Security", path: "#" },
+    { name: "Terms of Service", path: "/terms-of-service" },
+    { name: "Privacy Policy", path: "/privacy-policy" },
+    { name: "Security", path: "/security" },
   ];
 
   const socialLinks = [
@@ -197,16 +197,16 @@ const Footer = () => {
               © {currentYear} Blue Print Financial Ltd. All rights reserved.
             </div>
             <div className="flex flex-wrap justify-center md:justify-end space-x-6 text-sm text-gray-400">
-              <Link to="#" className="hover:text-primary-400 transition-colors">
+              <Link to="/terms-of-service" className="hover:text-primary-400 transition-colors">
                 Terms of Service
               </Link>
-              <Link to="#" className="hover:text-primary-400 transition-colors">
+              <Link to="/privacy-policy" className="hover:text-primary-400 transition-colors">
                 Privacy Policy
               </Link>
-              <Link to="#" className="hover:text-primary-400 transition-colors">
+              <Link to="/cookie-policy" className="hover:text-primary-400 transition-colors">
                 Cookie Policy
               </Link>
-              <Link to="#" className="hover:text-primary-400 transition-colors">
+              <Link to="/security" className="hover:text-primary-400 transition-colors">
                 Security
               </Link>
             </div>

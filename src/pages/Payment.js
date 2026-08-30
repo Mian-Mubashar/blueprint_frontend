@@ -6,12 +6,12 @@ import {
   CreditCard, 
   DollarSign, 
   CheckCircle, 
-  ArrowLeft,
   Calculator,
   Info
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import UserLayout from '../components/UserLayout';
 
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || 'pk_test_your_stripe_key');
 
@@ -23,36 +23,45 @@ const PaymentForm = () => {
 
   const { loanId, amount } = location.state || {};
   
+  // Ensure amount is properly parsed
+  const initialAmount = amount ? parseFloat(amount) : 0;
+  
   const [paymentData, setPaymentData] = useState({
     paymentType: 'loan_repayment',
-    customAmount: '',
-    selectedAmount: amount || 0,
+    customAmount: initialAmount > 0 ? initialAmount.toString() : '',
+    selectedAmount: initialAmount,
     paymentMethod: 'card'
   });
   const [loading, setLoading] = useState(false);
-  const [processingFee, setProcessingFee] = useState(0);
 
+  const baseAmount = initialAmount > 0 ? initialAmount : 1000; // Default to 1000 if no amount provided
   const predefinedAmounts = [
-    { label: 'Minimum Payment', amount: Math.round(amount * 0.5) },
-    { label: 'Half Payment', amount: Math.round(amount * 0.5) },
-    { label: 'Full Payment', amount: Math.round(amount) },
-    { label: 'Extra Payment', amount: Math.round(amount * 1.5) },
-    { label: 'Double Payment', amount: Math.round(amount * 2) }
+    { label: 'Minimum Payment', amount: Math.round(baseAmount * 0.5) },
+    { label: 'Half Payment', amount: Math.round(baseAmount * 0.5) },
+    { label: 'Full Payment', amount: Math.round(baseAmount) },
+    { label: 'Extra Payment', amount: Math.round(baseAmount * 1.5) },
+    { label: 'Double Payment', amount: Math.round(baseAmount * 2) }
   ];
 
   useEffect(() => {
-    if (!location.state) {
-      navigate('/dashboard');
+    if (!location.state || !loanId) {
+      toast.error('Invalid payment request. Please select a loan to pay.');
+      setTimeout(() => navigate('/dashboard'), 2000);
       return;
     }
-    calculateProcessingFee(paymentData.selectedAmount);
-  }, [paymentData.selectedAmount, location.state, navigate]);
-
-  const calculateProcessingFee = (amount) => {
-    // 2.5% processing fee
-    const fee = Math.round(amount * 0.025);
-    setProcessingFee(fee);
-  };
+    
+    // Update amount if it changes
+    if (amount) {
+      const parsedAmount = parseFloat(amount);
+      if (!isNaN(parsedAmount) && parsedAmount > 0) {
+        setPaymentData(prev => ({
+          ...prev,
+          selectedAmount: parsedAmount,
+          customAmount: parsedAmount.toString()
+        }));
+      }
+    }
+  }, [location.state, loanId, amount, navigate]);
 
   const handleAmountChange = (newAmount) => {
     setPaymentData({
@@ -60,7 +69,6 @@ const PaymentForm = () => {
       selectedAmount: newAmount,
       customAmount: newAmount.toString()
     });
-    calculateProcessingFee(newAmount);
   };
 
   const handleCustomAmountChange = (e) => {
@@ -70,7 +78,6 @@ const PaymentForm = () => {
       customAmount: e.target.value,
       selectedAmount: value
     });
-    calculateProcessingFee(value);
   };
 
   const handlePaymentTypeChange = (type) => {
@@ -83,8 +90,8 @@ const PaymentForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!paymentData.selectedAmount || paymentData.selectedAmount < 100) {
-      toast.error('Minimum payment amount is ₦100');
+    if (!paymentData.selectedAmount || paymentData.selectedAmount < 10) {
+      toast.error('Minimum payment amount is ₦10');
       return;
     }
 
@@ -96,12 +103,39 @@ const PaymentForm = () => {
     setLoading(true);
 
     try {
+      // Ensure amount is a valid number
+      const paymentAmount = parseFloat(paymentData.selectedAmount);
+      if (isNaN(paymentAmount) || paymentAmount < 10) {
+        toast.error('Please enter a valid payment amount (minimum ₦10)');
+        return;
+      }
+
+      // Ensure loanId is valid
+      const parsedLoanId = parseInt(loanId);
+      if (isNaN(parsedLoanId) || parsedLoanId <= 0) {
+        toast.error('Invalid loan ID. Please try again.');
+        return;
+      }
+
+      console.log('Creating payment intent:', {
+        loanApplicationId: parsedLoanId,
+        amount: paymentAmount,
+        paymentType: paymentData.paymentType,
+        loanIdType: typeof loanId,
+        loanIdValue: loanId
+      });
+
       // Create payment intent
       const response = await axios.post('/api/payments/create-payment-intent', {
-        loanApplicationId: loanId,
-        amount: paymentData.selectedAmount,
+        loanApplicationId: parsedLoanId,
+        amount: paymentAmount,
         paymentType: paymentData.paymentType
       });
+
+      if (!response.data || !response.data.clientSecret) {
+        toast.error('Failed to initialize payment. Please try again.');
+        return;
+      }
 
       const { clientSecret } = response.data;
 
@@ -113,75 +147,74 @@ const PaymentForm = () => {
       });
 
       if (result.error) {
-        toast.error(result.error.message);
+        toast.error(result.error.message || 'Payment failed. Please check your card details.');
       } else {
         // Confirm payment on server
-        await axios.post('/api/payments/confirm-payment', {
-          paymentId: response.data.paymentId,
-          paymentIntentId: result.paymentIntent.id
-        });
+        if (response.data.paymentId) {
+          await axios.post('/api/payments/confirm-payment', {
+            paymentId: response.data.paymentId,
+            paymentIntentId: result.paymentIntent.id
+          });
+        }
 
         toast.success('Payment successful!');
-        navigate('/dashboard');
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Payment failed');
+      console.error('Payment error:', error);
+      console.error('Error response:', error.response?.data);
+      
+      let errorMessage = 'Payment failed. Please try again.';
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorMessage = errorData.errors.map(e => e.msg || e.message).join(', ');
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const totalAmount = paymentData.selectedAmount + processingFee;
+  const totalAmount = paymentData.selectedAmount;
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20 pb-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8" data-aos="fade-up">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center text-primary-600 hover:text-primary-700 mb-4"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Back
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">Make Payment</h1>
-          <p className="text-gray-600 mt-2">
-            Choose your payment amount and complete the transaction
-          </p>
-        </div>
+    <UserLayout>
+      <div className="w-full">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="mb-8" data-aos="fade-up">
+            <h1 className="text-3xl font-bold text-gray-900">Make Payment</h1>
+            <p className="text-gray-600 mt-2">
+              Choose your payment amount and complete the transaction
+            </p>
+          </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Payment Options */}
           <div className="bg-white rounded-xl shadow-lg p-8" data-aos="fade-right">
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">Payment Options</h2>
             
-            {/* Payment Type */}
+            {/* Payment Type - fixed to loan repayment per business rules */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Payment Type
               </label>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { value: 'loan_repayment', label: 'Loan Repayment' },
-                  { value: 'processing_fee', label: 'Processing Fee' },
-                  { value: 'early_repayment', label: 'Early Payment' },
-                  { value: 'late_fee', label: 'Late Fee' }
-                ].map((type) => (
-                  <button
-                    key={type.value}
-                    type="button"
-                    onClick={() => handlePaymentTypeChange(type.value)}
-                    className={`p-3 border-2 rounded-lg text-center transition-all ${
-                      paymentData.paymentType === type.value
-                        ? 'border-primary-500 bg-primary-50 text-primary-700'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    {type.label}
-                  </button>
-                ))}
-              </div>
+              <p className="text-sm font-semibold text-primary-700">
+                Loan Repayment
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Payments are only for loan repayment. No application or processing fees are charged.
+              </p>
             </div>
 
             {/* Amount Selection */}
@@ -240,18 +273,13 @@ const PaymentForm = () => {
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="font-semibold text-gray-900 mb-3">Payment Summary</h3>
               <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Payment Amount:</span>
-                  <span className="font-semibold">₦{paymentData.selectedAmount.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Processing Fee (2.5%):</span>
-                  <span className="font-semibold">₦{processingFee.toLocaleString()}</span>
-                </div>
                 <div className="flex justify-between border-t pt-2">
                   <span className="text-gray-900 font-semibold">Total Amount:</span>
-                  <span className="font-bold text-primary-600">₦{totalAmount.toLocaleString()}</span>
+                  <span className="font-bold text-primary-600">₦{paymentData.selectedAmount.toLocaleString()}</span>
                 </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  No processing fees. You pay exactly what you select.
+                </p>
               </div>
             </div>
 
@@ -361,8 +389,9 @@ const PaymentForm = () => {
             </div>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </UserLayout>
   );
 };
 

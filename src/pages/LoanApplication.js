@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements } from '@stripe/react-stripe-js';
+import { useNavigate, Link } from 'react-router-dom';
+
 import { 
   DollarSign, 
   Calendar, 
@@ -13,8 +12,9 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import UserLayout from '../components/UserLayout';
 
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || 'pk_test_your_stripe_key');
+
 
 const LoanApplicationForm = () => {
   const navigate = useNavigate();
@@ -24,6 +24,9 @@ const LoanApplicationForm = () => {
     amountRequested: '',
     loanDuration: '',
     purpose: '',
+    bankName: '',
+    accountNumber: '',
+    accountName: '',
     collateralDetails: {},
     businessDetails: {}
   });
@@ -33,6 +36,13 @@ const LoanApplicationForm = () => {
   const [loanRates, setLoanRates] = useState({});
   const [maxAmounts, setMaxAmounts] = useState({});
   const [calculatedPayment, setCalculatedPayment] = useState(null);
+
+  // Minimum amounts for each loan type
+  const minAmounts = {
+    small_business: 5000,
+    payday: 8000,
+    collateral: 20000
+  };
 
   useEffect(() => {
     fetchLoanRates();
@@ -68,10 +78,22 @@ const LoanApplicationForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    
+    // Validate account number - only numbers, max 10 digits
+    if (name === 'accountNumber') {
+      const digitsOnly = value.replace(/\D/g, '');
+      if (digitsOnly.length <= 10) {
+        setFormData({
+          ...formData,
+          [name]: digitsOnly
+        });
+      }
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
   };
 
   const handleCollateralChange = (field, value) => {
@@ -95,13 +117,21 @@ const LoanApplicationForm = () => {
   };
 
   const validateStep1 = () => {
-    if (!formData.amountRequested || !formData.loanDuration || !formData.purpose) {
+    if (!formData.amountRequested || !formData.loanDuration || !formData.purpose || !formData.bankName || !formData.accountNumber || !formData.accountName) {
       toast.error('Please fill in all required fields');
       return false;
     }
 
+    const amount = parseFloat(formData.amountRequested);
+    const minAmount = minAmounts[formData.loanType] || 5000;
     const maxAmount = maxAmounts[formData.loanType];
-    if (parseFloat(formData.amountRequested) > maxAmount) {
+
+    if (amount < minAmount) {
+      toast.error(`Minimum amount for ${formData.loanType.replace('_', ' ')} loan is ₦${minAmount.toLocaleString()}`);
+      return false;
+    }
+
+    if (amount > maxAmount) {
       toast.error(`Maximum amount for ${formData.loanType.replace('_', ' ')} loan is ₦${maxAmount.toLocaleString()}`);
       return false;
     }
@@ -129,20 +159,32 @@ const LoanApplicationForm = () => {
     setLoading(true);
 
     try {
+      // Final validation before submit
+      const amount = parseFloat(formData.amountRequested);
+      const minAmount = minAmounts[formData.loanType] || 5000;
+      const maxAmount = maxAmounts[formData.loanType];
+
+      if (amount < minAmount) {
+        toast.error(`Minimum amount for ${formData.loanType.replace('_', ' ')} loan is ₦${minAmount.toLocaleString()}`);
+        setLoading(false);
+        return;
+      }
+
+      if (amount > maxAmount) {
+        toast.error(`Maximum amount for ${formData.loanType.replace('_', ' ')} loan is ₦${maxAmount.toLocaleString()}`);
+        setLoading(false);
+        return;
+      }
+
       const response = await axios.post('/api/loans/apply', formData);
       toast.success('Loan application submitted successfully!');
       
-      // Redirect to payment page with loan details
-      navigate('/payment', { 
-        state: { 
-          loanId: response.data.application.id,
-          amount: calculatedPayment?.monthlyPayment || 0,
-          loanType: formData.loanType,
-          loanAmount: formData.amountRequested
-        }
-      });
+      // Redirect to dashboard with success message
+      navigate('/dashboard');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to submit application');
+      const errorMessage = error.response?.data?.message || error.response?.data?.errors?.[0]?.msg || 'Failed to submit application';
+      toast.error(errorMessage);
+      console.error('Loan application error:', error.response?.data);
     } finally {
       setLoading(false);
     }
@@ -177,7 +219,7 @@ const LoanApplicationForm = () => {
               </div>
               <p className="text-sm text-gray-600">{type.desc}</p>
               <p className="text-xs text-gray-500 mt-1">
-                Interest: {loanRates[type.value] || 'N/A'}% | Max: ₦{maxAmounts[type.value]?.toLocaleString() || 'N/A'}
+                Interest: {loanRates[type.value] || 'N/A'}% | Min: ₦{minAmounts[type.value]?.toLocaleString() || 'N/A'} | Max: ₦{maxAmounts[type.value]?.toLocaleString() || 'N/A'}
               </p>
             </div>
           ))}
@@ -202,7 +244,7 @@ const LoanApplicationForm = () => {
               onChange={handleChange}
               className="input-field pl-10"
               placeholder="Enter loan amount"
-              min="10000"
+              min={minAmounts[formData.loanType] || 5000}
               max={maxAmounts[formData.loanType] || 50000000}
             />
           </div>
@@ -261,6 +303,61 @@ const LoanApplicationForm = () => {
           placeholder="Describe the purpose of your loan..."
         />
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label htmlFor="bankName" className="block text-sm font-medium text-gray-700 mb-2">
+            Bank Name *
+          </label>
+          <input
+            id="bankName"
+            name="bankName"
+            type="text"
+            required
+            value={formData.bankName}
+            onChange={handleChange}
+            className="input-field"
+            placeholder="Enter Bank Name"
+          />
+        </div>
+        <div>
+          <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700 mb-2">
+            Account Number *
+          </label>
+          <input
+            id="accountNumber"
+            name="accountNumber"
+            type="text"
+            inputMode="numeric"
+            maxLength={10}
+            required
+            value={formData.accountNumber}
+            onChange={handleChange}
+            className="input-field"
+            placeholder="Enter 10-digit account number"
+          />
+          {formData.accountNumber && formData.accountNumber.length < 10 && (
+            <p className="mt-1 text-xs text-gray-500">
+              {formData.accountNumber.length}/10 digits
+            </p>
+          )}
+        </div>
+        <div>
+          <label htmlFor="accountName" className="block text-sm font-medium text-gray-700 mb-2">
+            Account Name *
+          </label>
+          <input
+            id="accountName"
+            name="accountName"
+            type="text"
+            required
+            value={formData.accountName}
+            onChange={handleChange}
+            className="input-field"
+            placeholder="Enter Account Name"
+          />
+        </div>
+      </div>
     </div>
   );
 
@@ -288,6 +385,10 @@ const LoanApplicationForm = () => {
               <div className="flex justify-between">
                 <span className="text-gray-600">Loan Duration:</span>
                 <span className="font-semibold">{calculatedPayment.loanDuration} months</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Repayment Duration:</span>
+                <span className="font-semibold text-primary-600">{calculatedPayment.loanDuration} months</span>
               </div>
             </div>
             
@@ -453,7 +554,15 @@ const LoanApplicationForm = () => {
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Amount:</span>
-            <span className="font-semibold">₦{formData.amountRequested}</span>
+            <span className="font-semibold">₦{parseFloat(formData.amountRequested || 0).toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Loan Duration:</span>
+            <span className="font-semibold">{formData.loanDuration} months</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Repayment Duration:</span>
+            <span className="font-semibold text-primary-600">{formData.loanDuration} months</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Duration:</span>
@@ -496,45 +605,42 @@ const LoanApplicationForm = () => {
         />
         <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
           I agree to the{' '}
-          <button
-            type="button"
-            className="text-primary-600 hover:text-primary-500"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              toast.info('Terms and Conditions page coming soon');
-            }}
+          <Link
+            to="/terms-of-service"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary-600 hover:text-primary-500 underline"
+            onClick={(e) => e.stopPropagation()}
           >
             Terms and Conditions
-          </button>
+          </Link>
           {' '}and{' '}
-          <button
-            type="button"
-            className="text-primary-600 hover:text-primary-500"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              toast.info('Privacy Policy page coming soon');
-            }}
+          <Link
+            to="/privacy-policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary-600 hover:text-primary-500 underline"
+            onClick={(e) => e.stopPropagation()}
           >
             Privacy Policy
-          </button>
+          </Link>
         </label>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20 pb-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8" data-aos="fade-up">
-          <h1 className="text-3xl font-bold text-gray-900">Apply for a Loan</h1>
-          <p className="text-gray-600 mt-2">
-            Get the funding you need with our flexible loan options
-          </p>
-        </div>
+    <UserLayout>
+      <div className="w-full">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8" data-aos="fade-up">
+            <h1 className="text-3xl font-bold text-gray-900">Apply for a Loan</h1>
+            <p className="text-gray-600 mt-2">
+              Get the funding you need with our flexible loan options
+            </p>
+          </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-8">
+          <div className="bg-white rounded-xl shadow-lg p-8">
           {/* Progress Steps */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
@@ -610,17 +716,16 @@ const LoanApplicationForm = () => {
               )}
             </div>
           </form>
+          </div>
         </div>
       </div>
-    </div>
+    </UserLayout>
   );
 };
 
 const LoanApplication = () => {
   return (
-    <Elements stripe={stripePromise}>
-      <LoanApplicationForm />
-    </Elements>
+    <LoanApplicationForm />
   );
 };
 

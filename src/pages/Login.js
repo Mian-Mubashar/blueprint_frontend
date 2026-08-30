@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import GoogleAuth from '../components/GoogleAuth';
+import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import toast from 'react-hot-toast';
 
 const Login = () => {
@@ -12,15 +13,23 @@ const Login = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   
   const { login, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
+    // Only redirect if user is already logged in (not during login process)
+    if (user && !isLoading) {
+      // Role-based redirect - same as register
+      const userRole = user?.role || 'user';
+      if (userRole === 'admin') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     }
-  }, [user, navigate]);
+  }, [user, navigate, isLoading]);
 
   const handleChange = (e) => {
     setFormData({
@@ -36,7 +45,17 @@ const Login = () => {
     try {
       const result = await login(formData.email, formData.password);
       if (result.success) {
-        navigate('/dashboard');
+        // Role-based redirect - immediately after login
+        // Don't wait for useEffect, redirect right away
+        const userRole = result.user?.role || 'user';
+        console.log('Login successful, redirecting based on role:', userRole);
+        
+        // Use replace: true to prevent back navigation to login page
+        if (userRole === 'admin') {
+          navigate('/admin', { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
       }
     } catch (error) {
       toast.error('Login failed. Please try again.');
@@ -135,7 +154,7 @@ const Login = () => {
               <div className="text-sm">
                 <button 
                   type="button"
-                  onClick={() => toast.info('Password reset feature coming soon')}
+                  onClick={() => setShowForgotPassword(true)}
                   className="font-medium text-primary-600 hover:text-primary-500"
                 >
                   Forgot your password?
@@ -200,7 +219,7 @@ const Login = () => {
             By signing in, you agree to our{' '}
             <button 
               type="button"
-              onClick={() => toast.info('Terms of Service page coming soon')}
+              onClick={() => toast.success('Terms of Service page coming soon')}
               className="font-medium text-primary-600 hover:text-primary-500"
             >
               Terms of Service
@@ -208,7 +227,7 @@ const Login = () => {
             and{' '}
             <button 
               type="button"
-              onClick={() => toast.info('Privacy Policy page coming soon')}
+              onClick={() => toast.success('Privacy Policy page coming soon')}
               className="font-medium text-primary-600 hover:text-primary-500"
             >
               Privacy Policy
@@ -216,6 +235,12 @@ const Login = () => {
           </p>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal 
+        isOpen={showForgotPassword} 
+        onClose={() => setShowForgotPassword(false)} 
+      />
     </div>
   );
 };

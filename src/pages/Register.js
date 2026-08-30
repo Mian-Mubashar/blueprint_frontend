@@ -36,16 +36,100 @@ const Register = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
+    // Only redirect if user is already logged in (not during registration)
+    // This prevents redirect during the registration process
+    if (user && !isLoading) {
+      // Role-based redirect - same as login
+      const userRole = user?.role || 'user';
+      if (userRole === 'admin') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     }
-  }, [user, navigate]);
+  }, [user, navigate, isLoading]);
+
+  const formatNigerianPhone = (value) => {
+    // Remove all non-digit characters
+    let digits = value.replace(/\D/g, '');
+    
+    // If starts with 234, keep it
+    if (digits.startsWith('234')) {
+      // Format as +234 XXX XXX XXXX
+      if (digits.length <= 3) return `+${digits}`;
+      if (digits.length <= 6) return `+${digits.slice(0, 3)} ${digits.slice(3)}`;
+      if (digits.length <= 9) return `+${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+      return `+${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 9)} ${digits.slice(9, 13)}`;
+    }
+    
+    // If starts with 0, format as 0XXX XXX XXXX
+    if (digits.startsWith('0')) {
+      if (digits.length <= 4) return digits;
+      if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`;
+      return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 11)}`;
+    }
+    
+    // If just digits, assume it's a local number starting with 0
+    if (digits.length > 0 && !digits.startsWith('0') && !digits.startsWith('234')) {
+      digits = '0' + digits;
+    }
+    
+    if (digits.length <= 4) return digits;
+    if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`;
+    return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 11)}`;
+  };
+
+  const validateNigerianPhone = (phone) => {
+    // Remove all non-digit characters for validation
+    const digits = phone.replace(/\D/g, '');
+    
+    // Must be either 11 digits (0XXXXXXXXXX) or 13 digits (234XXXXXXXXXX)
+    if (digits.length !== 11 && digits.length !== 13) {
+      return false;
+    }
+    
+    // If 11 digits, must start with 0
+    if (digits.length === 11 && !digits.startsWith('0')) {
+      return false;
+    }
+    
+    // If 13 digits, must start with 234
+    if (digits.length === 13 && !digits.startsWith('234')) {
+      return false;
+    }
+    
+    // Valid Nigerian mobile prefixes (all major networks)
+    const validPrefixes = ['070', '080', '081', '090', '091', '082', '083', '084', '085', '086', '087', '088', '089', '092', '093', '094', '095', '096', '097', '098', '099'];
+    const prefix = digits.length === 11 ? digits.slice(0, 3) : digits.slice(3, 6);
+    
+    return validPrefixes.includes(prefix);
+  };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    
+    if (name === 'phone') {
+      // Format phone number as user types
+      const formatted = formatNigerianPhone(value);
+      setFormData({
+        ...formData,
+        [name]: formatted
+      });
+    } else if (name === 'bankAccountNumber') {
+      // Only allow numbers and limit to 10 digits
+      const digitsOnly = value.replace(/\D/g, '');
+      if (digitsOnly.length <= 10) {
+        setFormData({
+          ...formData,
+          [name]: digitsOnly
+        });
+      }
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
   };
 
   const validateStep1 = () => {
@@ -53,6 +137,11 @@ const Register = () => {
     
     if (!firstName || !lastName || !email || !phone || !password || !confirmPassword) {
       toast.error('Please fill in all required fields');
+      return false;
+    }
+    
+    if (!validateNigerianPhone(phone)) {
+      toast.error('Please enter a valid Nigerian phone number (e.g., +234 800 000 0000 or 0800 000 0000)');
       return false;
     }
     
@@ -106,7 +195,17 @@ const Register = () => {
     try {
       const result = await register(formData);
       if (result.success) {
-        navigate('/dashboard');
+        // Role-based redirect - immediately after registration
+        // Don't wait for useEffect, redirect right away
+        const userRole = result.user?.role || 'user';
+        console.log('Registration successful, redirecting based on role:', userRole);
+        
+        // Use replace: true to prevent back navigation to register page
+        if (userRole === 'admin') {
+          navigate('/admin', { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
       }
     } catch (error) {
       toast.error('Registration failed. Please try again.');
@@ -190,9 +289,7 @@ const Register = () => {
           Phone Number *
         </label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Phone className="h-5 w-5 text-gray-400" />
-          </div>
+          <Phone className="absolute left-3 top-[45%] transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
           <input
             id="phone"
             name="phone"
@@ -201,8 +298,10 @@ const Register = () => {
             value={formData.phone}
             onChange={handleChange}
             className="input-field pl-10"
-            placeholder="+234 800 000 0000"
+            placeholder="+234 800 000 0000 or 0800 000 0000"
+            maxLength={17}
           />
+          <p className="text-xs text-gray-500 mt-1">Enter a valid Nigerian phone number</p>
         </div>
       </div>
 
@@ -386,11 +485,18 @@ const Register = () => {
           id="bankAccountNumber"
           name="bankAccountNumber"
           type="text"
+          inputMode="numeric"
+          maxLength={10}
           value={formData.bankAccountNumber}
           onChange={handleChange}
           className="input-field"
-          placeholder="Enter your account number"
+          placeholder="Enter 10-digit account number"
         />
+        {formData.bankAccountNumber && formData.bankAccountNumber.length < 10 && (
+          <p className="mt-1 text-xs text-gray-500">
+            {formData.bankAccountNumber.length}/10 digits
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

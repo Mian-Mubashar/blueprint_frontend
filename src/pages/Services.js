@@ -18,6 +18,7 @@ import toast from 'react-hot-toast';
 const Services = () => {
   const [loanRates, setLoanRates] = useState({});
   const [maxAmounts, setMaxAmounts] = useState({});
+  const [minAmounts, setMinAmounts] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,6 +30,11 @@ const Services = () => {
       const response = await axios.get('/api/loans/calculator/rates');
       setLoanRates(response.data.interestRates);
       setMaxAmounts(response.data.maxAmounts);
+      setMinAmounts(response.data.minAmounts || {
+        small_business: 5000,
+        payday: 8000,
+        collateral: 20000
+      });
     } catch (error) {
       toast.error('Failed to load loan information');
     } finally {
@@ -259,6 +265,12 @@ const Services = () => {
                       </span>
                     </div>
                     <div className="flex justify-between items-center mt-2">
+                      <span className="text-sm text-gray-600">Min Amount:</span>
+                      <span className="font-semibold text-secondary-600">
+                        ₦{minAmounts[service.loanType]?.toLocaleString() || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
                       <span className="text-sm text-gray-600">Max Amount:</span>
                       <span className="font-semibold text-secondary-600">
                         ₦{maxAmounts[service.loanType]?.toLocaleString() || 'N/A'}
@@ -352,7 +364,7 @@ const Services = () => {
 
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-xl shadow-lg p-8" data-aos="fade-up">
-              <LoanCalculator loanRates={loanRates} maxAmounts={maxAmounts} />
+              <LoanCalculator loanRates={loanRates} maxAmounts={maxAmounts} minAmounts={minAmounts} />
             </div>
           </div>
         </div>
@@ -384,7 +396,7 @@ const Services = () => {
 };
 
 // Loan Calculator Component
-const LoanCalculator = ({ loanRates, maxAmounts }) => {
+const LoanCalculator = ({ loanRates, maxAmounts, minAmounts }) => {
   const [formData, setFormData] = useState({
     loanType: 'small_business',
     amount: '',
@@ -406,11 +418,19 @@ const LoanCalculator = ({ loanRates, maxAmounts }) => {
       return;
     }
 
+    const amount = parseFloat(formData.amount);
+    const minAmount = minAmounts[formData.loanType] || 5000;
+    
+    if (amount < minAmount) {
+      toast.error(`Minimum amount for ${formData.loanType.replace('_', ' ')} loan is ₦${minAmount.toLocaleString()}`);
+      return;
+    }
+
     try {
       const response = await axios.post('/api/loans/calculator/calculate', formData);
       setResult(response.data);
     } catch (error) {
-      toast.error('Failed to calculate loan');
+      toast.error(error.response?.data?.message || 'Failed to calculate loan');
     }
   };
 
@@ -444,7 +464,7 @@ const LoanCalculator = ({ loanRates, maxAmounts }) => {
             onChange={handleChange}
             className="input-field"
             placeholder="Enter loan amount"
-            min="10000"
+            min={minAmounts[formData.loanType] || 5000}
             max={maxAmounts[formData.loanType] || 50000000}
           />
         </div>

@@ -23,20 +23,96 @@ const Contact = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const formatNigerianPhone = (value) => {
+    // Remove all non-digit characters
+    let digits = value.replace(/\D/g, '');
+    
+    // If starts with 234, keep it
+    if (digits.startsWith('234')) {
+      // Format as +234 XXX XXX XXXX
+      if (digits.length <= 3) return `+${digits}`;
+      if (digits.length <= 6) return `+${digits.slice(0, 3)} ${digits.slice(3)}`;
+      if (digits.length <= 9) return `+${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+      return `+${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 9)} ${digits.slice(9, 13)}`;
+    }
+    
+    // If starts with 0, format as 0XXX XXX XXXX
+    if (digits.startsWith('0')) {
+      if (digits.length <= 4) return digits;
+      if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`;
+      return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 11)}`;
+    }
+    
+    // If just digits, assume it's a local number starting with 0
+    if (digits.length > 0 && !digits.startsWith('0') && !digits.startsWith('234')) {
+      digits = '0' + digits;
+    }
+    
+    if (digits.length <= 4) return digits;
+    if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`;
+    return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 11)}`;
+  };
+
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    
+    if (name === 'phone') {
+      // Format phone number as user types
+      const formatted = formatNigerianPhone(value);
+      setFormData({
+        ...formData,
+        [name]: formatted
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
+  };
+
+  const validateNigerianPhone = (phone) => {
+    if (!phone) return true; // Phone is optional
+    
+    // Remove all non-digit characters for validation
+    const digits = phone.replace(/\D/g, '');
+    
+    // Must be either 11 digits (0XXXXXXXXXX) or 13 digits (234XXXXXXXXXX)
+    if (digits.length !== 11 && digits.length !== 13) {
+      return false;
+    }
+    
+    // If 11 digits, must start with 0
+    if (digits.length === 11 && !digits.startsWith('0')) {
+      return false;
+    }
+    
+    // If 13 digits, must start with 234
+    if (digits.length === 13 && !digits.startsWith('234')) {
+      return false;
+    }
+    
+    // Valid Nigerian mobile prefixes
+    const validPrefixes = ['070', '080', '081', '090', '091', '082', '083', '084', '085', '086', '087', '088', '089', '092', '093', '094', '095', '096', '097', '098', '099'];
+    const prefix = digits.length === 11 ? digits.slice(0, 3) : digits.slice(3, 6);
+    
+    return validPrefixes.includes(prefix);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate phone if provided
+    if (formData.phone && !validateNigerianPhone(formData.phone)) {
+      toast.error('Please enter a valid Nigerian phone number (e.g., +234 800 000 0000 or 0800 000 0000)');
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
-      await axios.post('/api/contact/submit', formData);
-      toast.success('Message sent successfully! We will get back to you soon.');
+      const response = await axios.post('/api/contact/submit', formData);
+      toast.success(response.data.message || 'Message sent successfully! We will get back to you soon.');
       setFormData({
         name: '',
         email: '',
@@ -45,7 +121,16 @@ const Contact = () => {
         message: ''
       });
     } catch (error) {
-      toast.error('Failed to send message. Please try again.');
+      console.error('Contact form error:', error);
+      if (error.response?.data?.errors) {
+        // Show validation errors
+        const firstError = error.response.data.errors[0];
+        toast.error(firstError.message || 'Please check your form and try again.');
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Failed to send message. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -89,7 +174,7 @@ const Contact = () => {
     },
     {
       question: "What is the minimum and maximum loan amount?",
-      answer: "Minimum loan amount is ₦10,000. Maximum amounts vary by loan type: Small Business (₦5M), Payday (₦500K), Collateral (₦50M)."
+      answer: "Minimum amounts vary by loan type: Small Business (₦5,000), Payday (₦8,000), Collateral (₦20,000). Maximum amounts: Small Business (₦5M), Payday (₦500K), Collateral (₦50M)."
     },
     {
       question: "Are there any hidden fees?",
@@ -226,15 +311,20 @@ const Contact = () => {
                       <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                         Phone Number
                       </label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className="input-field"
-                        placeholder="+234 800 000 0000"
-                      />
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-[45%] transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                        <input
+                          type="tel"
+                          id="phone"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleChange}
+                          className="input-field pl-10"
+                          placeholder="+234 800 000 0000 or 0800 000 0000"
+                          maxLength={17}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Enter a valid Nigerian phone number</p>
                     </div>
                     <div>
                       <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
@@ -396,21 +486,21 @@ const Contact = () => {
             <div className="flex justify-center space-x-6 mb-8">
               <button
                 type="button"
-                onClick={() => toast.info('Website coming soon')}
+                onClick={() => toast.success('Website coming soon')}
                 className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center text-white hover:bg-primary-700 transition-colors"
               >
                 <Globe className="w-6 h-6" />
               </button>
               <button
                 type="button"
-                onClick={() => toast.info('Social channel coming soon')}
+                onClick={() => toast.success('Social channel coming soon')}
                 className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors"
               >
                 <MessageCircle className="w-6 h-6" />
               </button>
               <button
                 type="button"
-                onClick={() => toast.info('Community channel coming soon')}
+                onClick={() => toast.success('Community channel coming soon')}
                 className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white hover:bg-green-700 transition-colors"
               >
                 <Users className="w-6 h-6" />
@@ -423,7 +513,7 @@ const Contact = () => {
                   type="email"
                   placeholder="Enter your email"
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
+                /> 
                 <button className="btn-primary rounded-l-none">
                   Subscribe
                 </button>
