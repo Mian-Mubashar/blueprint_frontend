@@ -215,10 +215,10 @@ const Dashboard = () => {
                       </div>
                       <div className="ml-3">
                         <p className="font-medium text-gray-900 capitalize">
-                          {payment.payment_type.replace('_', ' ')}
+                          {payment.payment_type?.replace('_', ' ') || 'Payment'}
                         </p>
                         <p className="text-sm text-gray-600 capitalize">
-                          {payment.loan_type.replace('_', ' ')}
+                          {payment.loan_type ? payment.loan_type.replace('_', ' ') : 'General payment'}
                         </p>
                       </div>
                     </div>

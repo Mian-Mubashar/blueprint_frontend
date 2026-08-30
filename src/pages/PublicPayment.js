@@ -4,6 +4,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   CreditCard, 
   DollarSign, 
@@ -34,10 +35,13 @@ const PublicPaymentInner = () => {
   const navigate = useNavigate();
   const stripe = useStripe();
   const elements = useElements();
+  const { user } = useAuth();
 
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedQuickAmount, setSelectedQuickAmount] = useState(null);
+  const [payerName, setPayerName] = useState('');
+  const [payerEmail, setPayerEmail] = useState('');
 
   const quickAmounts = [
     { label: '₦1,000', value: 1000 },
@@ -78,6 +82,13 @@ const PublicPaymentInner = () => {
       return;
     }
 
+    if (!user) {
+      if (!payerName.trim() || !payerEmail.trim()) {
+        toast.error('Please enter your name and email');
+        return;
+      }
+    }
+
     const cardElement = elements.getElement(CardNumberElement);
     if (!cardElement) {
       toast.error('Please enter your card details');
@@ -89,9 +100,12 @@ const PublicPaymentInner = () => {
     try {
       console.log('Creating payment intent for amount:', numericAmount);
       
-      // Create payment intent
-      const { data } = await axios.post('/api/payments/public/create-payment-intent', { 
-        amount: numericAmount 
+      // Create payment intent and save a DB record
+      const { data } = await axios.post('/api/payments/public/create-payment-intent', {
+        amount: numericAmount,
+        paymentType: 'other',
+        payerName: payerName.trim(),
+        payerEmail: payerEmail.trim()
       });
 
       console.log('Payment intent response:', data);
@@ -117,16 +131,24 @@ const PublicPaymentInner = () => {
       }
 
       if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+        if (data.paymentId) {
+          await axios.post('/api/payments/public/confirm-payment', {
+            paymentId: data.paymentId,
+            paymentIntentId: result.paymentIntent.id
+          });
+        }
+
         toast.success(`Payment of ₦${numericAmount.toLocaleString()} successful!`);
         
         // Reset form
         setAmount('');
         setSelectedQuickAmount(null);
+        setPayerName('');
+        setPayerEmail('');
         
-        // Redirect after a delay
         setTimeout(() => {
-          navigate('/');
-        }, 2000);
+          navigate(user ? '/payments' : '/');
+        }, 1500);
       } else {
         toast.error('Payment was not completed. Please try again.');
       }
@@ -283,6 +305,37 @@ const PublicPaymentInner = () => {
                       )}
                     </div>
                   </div>
+
+                  {!user && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Full name *
+                        </label>
+                        <input
+                          type="text"
+                          value={payerName}
+                          onChange={(e) => setPayerName(e.target.value)}
+                          className="input-field"
+                          placeholder="Your full name"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Email *
+                        </label>
+                        <input
+                          type="email"
+                          value={payerEmail}
+                          onChange={(e) => setPayerEmail(e.target.value)}
+                          className="input-field"
+                          placeholder="you@example.com"
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   {/* Card Details */}
                   <div className="border-t pt-6">

@@ -50,6 +50,12 @@ const QuickPaymentInner = () => {
         toast.error(result.error.message || 'Payment failed');
         return;
       }
+      if (data.paymentId && result.paymentIntent?.id) {
+        await axios.post('/api/payments/public/confirm-payment', {
+          paymentId: data.paymentId,
+          paymentIntentId: result.paymentIntent.id
+        });
+      }
       toast.success('Payment successful');
       navigate('/');
     } catch (err) {

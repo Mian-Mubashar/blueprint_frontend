@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Shield, 
   Clock, 
@@ -20,28 +20,16 @@ import {
   ChevronDown,
   BarChart3,
   Building2,
-  Handshake
+  Handshake,
+  LayoutDashboard
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 
 const Home = () => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  // Redirect logged-in users to their dashboard (same as admin)
-  useEffect(() => {
-    if (!loading && user) {
-      // Role-based redirect - don't show home page if user is logged in
-      const userRole = user?.role || 'user';
-      if (userRole === 'admin') {
-        navigate('/admin', { replace: true });
-      } else {
-        navigate('/dashboard', { replace: true });
-      }
-    }
-  }, [user, loading, navigate]);
+  const { user } = useAuth();
+  const dashboardPath = user?.role === 'admin' ? '/admin' : '/dashboard';
   const services = [
     {
       icon: <DollarSign className="w-8 h-8" />,
@@ -245,6 +233,12 @@ const Home = () => {
                 From small business funding to emergency payday loans, we're your trusted financial partner.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
+                {user && (
+                  <Link to={dashboardPath} className="btn-primary bg-white text-gray-900 hover:bg-gray-100 text-center inline-flex items-center justify-center">
+                    <LayoutDashboard className="w-5 h-5 mr-2" />
+                    Dashboard
+                  </Link>
+                )}
                 <Link to="/services" className="btn-outline border-white text-white hover:bg-white hover:text-gray-900 text-center">
                   Our Services
                 </Link>
@@ -530,9 +524,16 @@ const Home = () => {
               Join thousands of satisfied customers who have achieved their financial goals with Blue Print Financial
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/register" className="btn-primary bg-white text-gray-900 hover:bg-gray-100">
-                Apply for Loan
-              </Link>
+              {user ? (
+                <Link to={dashboardPath} className="btn-primary bg-white text-gray-900 hover:bg-gray-100 inline-flex items-center justify-center">
+                  <LayoutDashboard className="w-5 h-5 mr-2" />
+                  Go to Dashboard
+                </Link>
+              ) : (
+                <Link to="/register" className="btn-primary bg-white text-gray-900 hover:bg-gray-100">
+                  Apply for Loan
+                </Link>
+              )}
               <Link to="/contact" className="btn-outline border-white text-white hover:bg-white hover:text-gray-900">
                 Contact Us
               </Link>

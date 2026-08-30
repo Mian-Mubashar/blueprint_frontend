@@ -368,9 +368,9 @@ const AdminPaymentHistory = () => {
                                   </div>
                                   <div className="ml-3 min-w-0">
                                     <p className="text-sm font-medium text-gray-900 truncate">
-                                      {payment.first_name} {payment.last_name}
+                                      {payment.first_name || payment.payer_name || 'Guest'} {payment.last_name || ''}
                                     </p>
-                                    <p className="text-xs text-gray-500 truncate">{payment.email}</p>
+                                    <p className="text-xs text-gray-500 truncate">{payment.email || payment.payer_email || 'No email'}</p>
                                     {payment.phone && (
                                       <p className="text-xs text-gray-500 truncate">{payment.phone}</p>
                                     )}
@@ -434,9 +434,9 @@ const AdminPaymentHistory = () => {
                             </div>
                             <div className="ml-3 min-w-0 flex-1">
                               <p className="text-sm font-medium text-gray-900 truncate">
-                                {payment.first_name} {payment.last_name}
+                                {payment.first_name || payment.payer_name || 'Guest'} {payment.last_name || ''}
                               </p>
-                              <p className="text-xs text-gray-500 truncate">{payment.email}</p>
+                              <p className="text-xs text-gray-500 truncate">{payment.email || payment.payer_email || 'No email'}</p>
                             </div>
                           </div>
                           <span className={getStatusBadge(payment.status)}>
