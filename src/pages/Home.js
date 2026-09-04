@@ -26,6 +26,7 @@ import {
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { calculateLoanPayment } from '../utils/loanCalculator';
 
 const Home = () => {
   const { user } = useAuth();
@@ -113,14 +114,19 @@ const Home = () => {
     }
     try {
       setQuickLoading(true);
-      const response = await axios.post('/api/loans/calculator/calculate', {
-        amount: amount,
-        duration: parseInt(quickDuration, 10),
-        loanType: 'small_business'
-      });
-      setQuickResult(response.data);
+      const duration = parseInt(quickDuration, 10);
+      try {
+        const response = await axios.post('/api/loans/calculator/calculate', {
+          amount,
+          duration,
+          loanType: 'small_business'
+        });
+        setQuickResult(response.data);
+      } catch {
+        setQuickResult(calculateLoanPayment(amount, duration, 'small_business'));
+      }
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to calculate loan');
+      toast.error('Failed to calculate loan');
       setQuickResult(null);
     } finally {
       setQuickLoading(false);

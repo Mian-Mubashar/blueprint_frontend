@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { calculateLoanPayment } from '../utils/loanCalculator';
 
 const Services = () => {
   const [loanRates, setLoanRates] = useState({});
@@ -430,7 +431,12 @@ const LoanCalculator = ({ loanRates, maxAmounts, minAmounts }) => {
       const response = await axios.post('/api/loans/calculator/calculate', formData);
       setResult(response.data);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to calculate loan');
+      setResult(calculateLoanPayment(
+        amount,
+        formData.duration,
+        formData.loanType,
+        loanRates[formData.loanType]
+      ));
     }
   };
 

@@ -13,6 +13,7 @@ import {
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import UserLayout from '../components/UserLayout';
+import { calculateLoanPayment } from '../utils/loanCalculator';
 
 
 
@@ -72,7 +73,11 @@ const LoanApplicationForm = () => {
       });
       setCalculatedPayment(response.data);
     } catch (error) {
-      toast.error('Failed to calculate payment');
+      setCalculatedPayment(calculateLoanPayment(
+        formData.amountRequested,
+        formData.loanDuration,
+        formData.loanType
+      ));
     }
   };
 
