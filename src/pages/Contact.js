@@ -140,13 +140,13 @@ const Contact = () => {
     {
       icon: <Phone className="w-6 h-6" />,
       title: "Phone",
-      details: ["+234 (0) 123 456 7890", "+234 (0) 987 654 3210"],
+      details: ["+1 (703) 623-8800"],
       description: "Call us for immediate assistance"
     },
     {
       icon: <Mail className="w-6 h-6" />,
       title: "Email",
-      details: ["info@blueprintfinancial.ng", "support@blueprintfinancial.ng"],
+      details: ["info@blueprintmicrofinance.com"],
       description: "Send us an email anytime"
     },
     {
@@ -194,20 +194,20 @@ const Contact = () => {
     {
       city: "Lagos",
       address: "123 Victoria Island, Lagos",
-      phone: "+234 (0) 123 456 7890",
-      email: "lagos@blueprintfinancial.ng"
+      phone: "+1 (703) 623-8800",
+      email: "info@blueprintmicrofinance.com"
     },
     {
       city: "Abuja",
       address: "456 Central Business District, Abuja",
-      phone: "+234 (0) 987 654 3210",
-      email: "abuja@blueprintfinancial.ng"
+      phone: "+1 (703) 623-8800",
+      email: "info@blueprintmicrofinance.com"
     },
     {
       city: "Kano",
       address: "789 Nasarawa GRA, Kano",
-      phone: "+234 (0) 555 123 4567",
-      email: "kano@blueprintfinancial.ng"
+      phone: "+1 (703) 623-8800",
+      email: "info@blueprintmicrofinance.com"
     }
   ];
 

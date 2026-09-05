@@ -555,12 +555,16 @@ const Home = () => {
             <div data-aos="fade-up">
               <Phone className="w-8 h-8 text-primary-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Call Us</h3>
-              <p className="text-gray-300">+1 (555) 123-4567</p>
+              <p className="text-gray-300">
+                <a href="tel:+17036238800" className="hover:text-white">+1 (703) 623-8800</a>
+              </p>
             </div>
             <div data-aos="fade-up" data-aos-delay="100">
               <Mail className="w-8 h-8 text-primary-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Email Us</h3>
-              <p className="text-gray-300">contact@example.com</p>
+              <p className="text-gray-300">
+                <a href="mailto:info@blueprintmicrofinance.com" className="hover:text-white">info@blueprintmicrofinance.com</a>
+              </p>
             </div>
             <div data-aos="fade-up" data-aos-delay="200">
               <MapPin className="w-8 h-8 text-primary-400 mx-auto mb-4" />

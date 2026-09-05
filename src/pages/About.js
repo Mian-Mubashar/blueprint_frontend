@@ -10,6 +10,7 @@ import {
   Star,
   Quote
 } from 'lucide-react';
+import ownerPhoto from '../images/business-owner.jpg';
 
 const About = () => {
   const values = [
@@ -44,10 +45,10 @@ const About = () => {
 
   const team = [
     {
-      name: "Dr. Adebayo Ogunlesi",
-      position: "CEO & Founder",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
-      description: "20+ years in banking and financial services across Nigeria."
+      name: "Business Owner",
+      position: "Founder",
+      image: ownerPhoto,
+      description: "Leading Blue Print Microfinance with a focus on accessible lending for Nigerian businesses and individuals."
     },
     {
       name: "Fatima Ibrahim",
@@ -162,9 +163,9 @@ const About = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div data-aos="fade-right">
               <img
-                src="https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=600&h=400&fit=crop"
-                alt="Nigerian business owners"
-                className="rounded-2xl shadow-lg"
+                src={ownerPhoto}
+                alt="Blue Print Microfinance business owner"
+                className="rounded-2xl shadow-lg w-full h-auto object-cover max-h-[520px] object-top"
               />
             </div>
             <div data-aos="fade-left">
@@ -217,7 +218,7 @@ const About = () => {
                 <img
                   src={member.image}
                   alt={member.name}
-                  className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
+                  className="w-32 h-32 rounded-full mx-auto mb-4 object-cover object-top"
                 />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">{member.name}</h3>
                 <p className="text-primary-600 font-medium mb-3">{member.position}</p>

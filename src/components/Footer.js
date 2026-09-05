@@ -74,13 +74,15 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center">
                 <Phone className="w-5 h-5 text-primary-400 mr-3" />
-                <span className="text-gray-400">+1 (555) 123-4567</span>
+                <a href="tel:+17036238800" className="text-gray-400 hover:text-primary-400">
+                  +1 (703) 623-8800
+                </a>
               </div>
               <div className="flex items-center">
                 <Mail className="w-5 h-5 text-primary-400 mr-3" />
-                <span className="text-gray-400 text-[15px]">
-                  contact@example.com
-                </span>
+                <a href="mailto:info@blueprintmicrofinance.com" className="text-gray-400 hover:text-primary-400 text-[15px]">
+                  info@blueprintmicrofinance.com
+                </a>
               </div>
               <div className="flex items-center">
                 <MapPin className="w-5 h-5 text-primary-400 mr-3" />
